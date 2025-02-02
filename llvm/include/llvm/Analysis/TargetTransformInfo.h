@@ -1759,6 +1759,10 @@ public:
   /// scalable version of the vectorized loop.
   bool preferFixedOverScalableIfEqualCost() const;
 
+  /// \returns True if target prefers SLP vectorizer with altermate opcode
+  /// vectorization, false - otherwise.
+  bool preferAlternateOpcodeVectorization() const;
+
   /// \returns True if the target prefers reductions in loop.
   bool preferInLoopReduction(unsigned Opcode, Type *Ty,
                              ReductionFlags Flags) const;
@@ -1890,6 +1894,11 @@ public:
   unsigned getNumBytesToPadGlobalArray(unsigned Size, Type *ArrayType) const;
 
   /// @}
+
+  /// Collect kernel launch bounds for \p F into \p LB.
+  void collectKernelLaunchBounds(
+      const Function &F,
+      SmallVectorImpl<std::pair<StringRef, int64_t>> &LB) const;
 
 private:
   /// The abstract base class used to type erase specific TTI
@@ -2301,6 +2310,7 @@ public:
                                         unsigned ChainSizeInBytes,
                                         VectorType *VecTy) const = 0;
   virtual bool preferFixedOverScalableIfEqualCost() const = 0;
+  virtual bool preferAlternateOpcodeVectorization() const = 0;
   virtual bool preferInLoopReduction(unsigned Opcode, Type *Ty,
                                      ReductionFlags) const = 0;
   virtual bool preferPredicatedReductionSelect(unsigned Opcode, Type *Ty,
@@ -2329,6 +2339,9 @@ public:
   virtual unsigned getMaxNumArgs() const = 0;
   virtual unsigned getNumBytesToPadGlobalArray(unsigned Size,
                                                Type *ArrayType) const = 0;
+  virtual void collectKernelLaunchBounds(
+      const Function &F,
+      SmallVectorImpl<std::pair<StringRef, int64_t>> &LB) const = 0;
 };
 
 template <typename T>
@@ -3098,6 +3111,9 @@ public:
   bool preferFixedOverScalableIfEqualCost() const override {
     return Impl.preferFixedOverScalableIfEqualCost();
   }
+  bool preferAlternateOpcodeVectorization() const override {
+    return Impl.preferAlternateOpcodeVectorization();
+  }
   bool preferInLoopReduction(unsigned Opcode, Type *Ty,
                              ReductionFlags Flags) const override {
     return Impl.preferInLoopReduction(Opcode, Ty, Flags);
@@ -3173,6 +3189,12 @@ public:
   unsigned getNumBytesToPadGlobalArray(unsigned Size,
                                        Type *ArrayType) const override {
     return Impl.getNumBytesToPadGlobalArray(Size, ArrayType);
+  }
+
+  void collectKernelLaunchBounds(
+      const Function &F,
+      SmallVectorImpl<std::pair<StringRef, int64_t>> &LB) const override {
+    Impl.collectKernelLaunchBounds(F, LB);
   }
 };
 

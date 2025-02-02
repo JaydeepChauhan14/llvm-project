@@ -989,6 +989,8 @@ public:
 
   bool preferFixedOverScalableIfEqualCost() const { return false; }
 
+  bool preferAlternateOpcodeVectorization() const { return true; }
+
   bool preferInLoopReduction(unsigned Opcode, Type *Ty,
                              TTI::ReductionFlags Flags) const {
     return false;
@@ -1048,6 +1050,10 @@ public:
   unsigned getNumBytesToPadGlobalArray(unsigned Size, Type *ArrayType) const {
     return 0;
   }
+
+  void collectKernelLaunchBounds(
+      const Function &F,
+      SmallVectorImpl<std::pair<StringRef, int64_t>> &LB) const {}
 
 protected:
   // Obtain the minimum required size to hold the value (without the sign)
