@@ -384,6 +384,7 @@ void InstrInfoEmitter::emitOperandTypeMappings(
       OperandOffsets.push_back(CurrentOffset);
       for (const auto &Op : Inst->Operands) {
         const DagInit *MIOI = Op.MIOperandInfo;
+  		OS << "Checking --------- " << Op.Rec << "\n";
         if (!ExpandMIOperandInfo || !MIOI || MIOI->getNumArgs() == 0) {
           // Single, anonymous, operand.
           OperandRecords.push_back(Op.Rec);
